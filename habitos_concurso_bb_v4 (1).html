@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Concurso Banco do Brasil — Meus Hábitos</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:#0f0f13; --surface:#17171e; --surface2:#1e1e27;
+    --border:rgba(255,255,255,0.07); --border-hover:rgba(255,255,255,0.14);
+    --text:#f0eee8; --muted:#7a7890; --muted2:#4a4860;
+    --radius:16px; --radius-sm:10px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh;padding:0 0 80px}
+
+  .hero{padding:56px 24px 40px;max-width:860px;margin:0 auto}
+  .hero-eyebrow{font-family:'Syne',sans-serif;font-size:11px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin-bottom:14px}
+  .hero h1{font-family:'Syne',sans-serif;font-size:clamp(28px,5vw,46px);font-weight:800;line-height:1.1;margin-bottom:16px}
+  .hero h1 em{font-style:normal;background:linear-gradient(90deg,#4f8ef7,#3ec98e);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+  .hero p{font-size:15px;color:var(--muted);line-height:1.6;max-width:480px}
+
+  .overview{max-width:860px;margin:0 auto 40px;padding:0 24px;display:grid;grid-template-columns:repeat(6,1fr);gap:10px}
+  .ov-card{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius-sm);padding:14px 12px 10px;cursor:pointer;transition:border-color .2s,transform .15s;text-decoration:none}
+  .ov-card:hover{border-color:var(--border-hover);transform:translateY(-2px)}
+  .ov-icon{font-size:20px;margin-bottom:8px}
+  .ov-name{font-size:10px;color:var(--muted);font-weight:500;line-height:1.3;margin-bottom:8px}
+  .ov-ring{position:relative;width:36px;height:36px}
+  .ov-ring svg{transform:rotate(-90deg)}
+  .ov-ring-pct{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;font-family:'Syne',sans-serif;color:var(--text)}
+
+  .cards{max-width:860px;margin:0 auto;padding:0 24px;display:flex;flex-direction:column;gap:20px}
+
+  .habit-card{background:var(--surface);border:0.5px solid var(--border);border-left:3px solid var(--accent);border-radius:var(--radius);overflow:hidden;transition:border-color .2s}
+  .habit-card:hover{border-color:var(--border-hover);border-left-color:var(--accent)}
+
+  .card-top{padding:22px 24px 18px;border-bottom:0.5px solid var(--border)}
+  .card-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:12px}
+  .card-head-left{display:flex;align-items:center;gap:14px}
+  .card-icon-wrap{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;background:var(--accent-bg)}
+  .card-title{font-family:'Syne',sans-serif;font-size:17px;font-weight:700;color:var(--text);margin-bottom:3px}
+  .card-why{font-size:12px;color:var(--muted);line-height:1.5}
+  .card-pct-badge{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:var(--accent);flex-shrink:0;white-space:nowrap}
+
+  .pbar-wrap{margin-top:4px}
+  .pbar-track{background:var(--surface2);border-radius:99px;height:5px;overflow:hidden}
+  .pbar-fill{height:100%;border-radius:99px;background:var(--accent);transition:width .4s cubic-bezier(.4,0,.2,1)}
+  .pbar-meta{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-top:5px}
+
+  .card-body{padding:18px 24px 20px}
+
+  /* marco nav */
+  .marco-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;padding-bottom:14px;border-bottom:0.5px solid var(--border)}
+  .marco-nav-btn{width:30px;height:30px;border-radius:8px;border:0.5px solid var(--border);background:var(--surface2);color:var(--muted);cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;transition:all .15s;flex-shrink:0}
+  .marco-nav-btn:hover:not(:disabled){border-color:var(--border-hover);color:var(--text);background:var(--surface)}
+  .marco-nav-btn:disabled{opacity:.25;cursor:default}
+  .marco-nav-dots{display:flex;gap:6px;align-items:center}
+  .marco-dot{width:7px;height:7px;border-radius:99px;background:var(--surface2);border:0.5px solid var(--border);transition:all .2s}
+  .marco-dot.active{background:var(--accent);border-color:var(--accent);width:18px}
+  .marco-dot.done{background:var(--accent);border-color:var(--accent);opacity:.4}
+
+  /* history banner + edit controls */
+  .history-banner{display:none;align-items:center;justify-content:space-between;padding:8px 12px;margin-bottom:14px;background:rgba(255,255,255,0.04);border-radius:8px;border:0.5px dashed var(--border-hover);font-size:11px;color:var(--muted)}
+  .history-banner.show{display:flex}
+  .history-banner-left{display:flex;align-items:center;gap:8px}
+  .history-banner-dot{width:6px;height:6px;border-radius:99px;background:var(--accent);opacity:.6;flex-shrink:0}
+  .edit-btn{font-size:11px;padding:4px 12px;border-radius:99px;border:0.5px solid var(--border-hover);background:transparent;color:var(--muted);cursor:pointer;transition:all .15s;white-space:nowrap;font-family:'DM Sans',sans-serif}
+  .edit-btn:hover{background:var(--surface);color:var(--text)}
+  .edit-btn.editing{background:var(--accent-bg);color:var(--accent);border-color:var(--accent)}
+  .save-btn{font-size:11px;padding:4px 12px;border-radius:99px;border:0.5px solid var(--accent);background:var(--accent-bg);color:var(--accent);cursor:pointer;transition:all .15s;white-space:nowrap;font-family:'DM Sans',sans-serif;margin-left:6px;display:none}
+  .save-btn.show{display:inline-block}
+  .save-btn:hover{background:var(--accent);color:#fff}
+
+  .marco-badge{display:inline-block;font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);background:var(--accent-bg);padding:3px 10px;border-radius:99px;margin-bottom:8px}
+  .marco-title{font-family:'Syne',sans-serif;font-size:15px;font-weight:600;color:var(--text);line-height:1.4;margin-bottom:6px}
+  .goal-hint{font-size:12px;color:var(--muted);padding:7px 12px;background:var(--surface2);border-radius:8px;border-left:2px solid var(--accent);margin-bottom:18px;line-height:1.5}
+
+  .weeks-wrap{display:flex;flex-direction:column;gap:16px;margin-bottom:16px}
+  .week-label{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;display:flex;align-items:center;gap:8px}
+  .week-ok-badge{font-size:10px;padding:2px 8px;border-radius:99px;background:var(--accent-bg);color:var(--accent);font-weight:600;letter-spacing:0;display:none}
+  .week-ok-badge.show{display:inline-block}
+
+  .days-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:7px}
+  .day-cell{display:flex;flex-direction:column;align-items:center;gap:5px}
+  .day-label{font-size:10px;font-weight:500;color:var(--muted2);text-transform:uppercase;letter-spacing:.04em}
+  .day-btn{width:100%;aspect-ratio:1;border-radius:8px;border:1.5px solid var(--surface2);background:var(--surface2);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;position:relative;overflow:hidden}
+  .day-btn::before{content:'';position:absolute;inset:0;background:var(--accent);opacity:0;transition:opacity .15s}
+  .day-btn:hover:not(.done):not(.off):not(.readonly)::before{opacity:.15}
+  .day-btn.done{border-color:var(--accent);background:var(--accent-bg)}
+  .day-btn.done::after{content:'';display:block;width:36%;height:60%;border-right:2px solid var(--accent);border-bottom:2px solid var(--accent);transform:rotate(45deg) translate(-1px,-2px);position:relative;z-index:1}
+  .day-btn.off{border-color:transparent;background:transparent;cursor:default;opacity:.25}
+  .day-btn.readonly{cursor:default}
+  .day-btn:hover:not(.done):not(.off):not(.readonly){border-color:var(--border-hover)}
+
+  .stats-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px}
+  .stat-chip{font-size:11px;color:var(--muted);padding:4px 12px;background:var(--surface2);border-radius:99px;border:0.5px solid var(--border)}
+  .stat-chip strong{color:var(--text);font-weight:500}
+
+  .next-marco-hint{margin-top:14px;padding:10px 14px;background:var(--surface2);border-radius:8px;font-size:12px;color:var(--muted);line-height:1.5}
+  .next-marco-hint span{color:var(--text);font-weight:500}
+
+  .reset-btn{display:flex;align-items:center;gap:5px;font-size:11px;padding:3px 10px;border-radius:99px;border:0.5px solid var(--border);background:transparent;color:var(--muted2);cursor:pointer;transition:all .15s;font-family:'DM Sans',sans-serif;margin-top:14px}
+  .reset-btn:hover{border-color:#f75f7a55;color:#f75f7a;background:rgba(247,95,122,0.07)}
+  .reset-btn svg{flex-shrink:0}
+
+  ::-webkit-scrollbar{width:6px}
+  ::-webkit-scrollbar-track{background:var(--bg)}
+  ::-webkit-scrollbar-thumb{background:var(--surface2);border-radius:99px}
+
+  @media(max-width:640px){
+    .overview{grid-template-columns:repeat(3,1fr)}
+    .days-grid{gap:4px}
+    .day-label{font-size:9px}
+  }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="hero-eyebrow">Planejamento de hábitos</div>
+  <h1>Rumo à vaga de<br><em>Escriturário BB</em></h1>
+  <p>6 hábitos estruturados em marcos progressivos. Registre cada dia e avance para o próximo marco após 14 dias.</p>
+</div>
+
+<div class="overview" id="overview"></div>
+<div class="cards" id="cards-container"></div>
+
+<script>
+const DAY_NAMES = ['Seg','Ter','Qua','Qui','Sex','Sáb','Dom'];
+const SK = 'bb_habitos_v4';
+
+// ── Habit definitions ────────────────────────────────────────────────────────
+const HABITS = [
+  {
+    id:'estudo', icon:'📚', accent:'#4f8ef7', accentBg:'rgba(79,142,247,0.12)',
+    name:'Estudo', fullName:'Hábito de estudo',
+    why:'Sem consistência nos estudos, o aprendizado fica superficial.',
+    mode:'daily', skipSunday:true,
+    marcos:[
+      {label:'Marco 1', title:'Estudar 1 hora por dia — no quarto, após passear com o Pigmeu'},
+      {label:'Marco 2', title:'Estudar 2 horas por dia — na universidade, após a musculação'},
+      {label:'Marco 3', title:'Estudar 3 horas por dia — na universidade, após a musculação'},
+      {label:'Marco 4', title:'Estudar 4 horas por dia — na universidade, após a musculação'},
+    ]
+  },
+  {
+    // Exercício: quarta disponível (dia atípico), meta varia por marco
+    // Marco 0: 2x/sem → 50% c/ 2 em sem1, 100% c/ 4 total
+    // Marco 1: 3x/sem → 50% c/ 3 em sem1, 100% c/ 6 total
+    // Marco 2: 4x/sem → 50% c/ 4 em sem1, 100% c/ 8 total
+    // Marco 3: igual marco 2 (4x/sem)
+    id:'exercicio', icon:'🏃', accent:'#3ec98e', accentBg:'rgba(62,201,142,0.12)',
+    name:'Exercício', fullName:'Exercício físico',
+    why:'O exercício regula hormônios essenciais para foco e concentração.',
+    mode:'exercicio',
+    marcos:[
+      {label:'Marco 1', title:'Caminhar 2x por semana', weeklyTarget:2,
+       hint:'Meta: 2 treinos/semana. 50% ao atingir 2x na 1ª semana, 100% ao completar 4 treinos nas duas semanas.'},
+      {label:'Marco 2', title:'Treinar 3x por semana às 16h na academia da Unifor', weeklyTarget:3,
+       hint:'Meta: 3 treinos/semana. 50% ao atingir 3x na 1ª semana, 100% ao completar 6 treinos nas duas semanas.'},
+      {label:'Marco 3', title:'Treinar 4x por semana às 16h na academia da Unifor', weeklyTarget:4,
+       hint:'Meta: 4 treinos/semana. 50% ao atingir 4x na 1ª semana, 100% ao completar 8 treinos nas duas semanas.'},
+      {label:'Marco 4', title:'Treinar 4x/semana com ficha de musculação', weeklyTarget:4,
+       hint:'Meta: 4 treinos/semana. 50% ao atingir 4x na 1ª semana, 100% ao completar 8 treinos nas duas semanas.'},
+    ]
+  },
+  {
+    id:'alimentacao', icon:'🥗', accent:'#f7a14f', accentBg:'rgba(247,161,79,0.12)',
+    name:'Alimentação', fullName:'Alimentação saudável',
+    why:'Uma boa alimentação é combustível para o cérebro e para os estudos.',
+    mode:'daily', skipSunday:false,
+    marcos:[
+      {label:'Marco 1', title:'Limitar bebidas a 100ml por refeição'},
+      {label:'Marco 2', title:'Substituir bebida por fruta nas refeições'},
+      {label:'Marco 3', title:'Seguir uma dieta com pelo menos 50% de adesão'},
+      {label:'Marco 4', title:'Dieta 100% + 2 refeições livres no fim de semana'},
+    ]
+  },
+  {
+    // Dormir: sábado é livre. Meta = 6 dias úteis/semana (seg-sex + dom).
+    // 50% ao marcar 6 na sem1, 100% ao marcar 6 na sem1 E 6 na sem2.
+    id:'sono', icon:'🌙', accent:'#c96fd4', accentBg:'rgba(201,111,212,0.12)',
+    name:'Sono', fullName:'Dormir bem',
+    why:'O sono de qualidade é essencial para a memória e a disposição.',
+    mode:'sono', skipSat:true,
+    hint:'Sábado é livre. Meta: 6 dias/semana (seg–sex + dom). 50% ao atingir 6 na 1ª semana, 100% ao completar as duas.',
+    marcos:[
+      {label:'Marco 1', title:'Parar de comer e beber às 20h'},
+      {label:'Marco 2', title:'Desligar as telas 30 min antes de dormir (21h30)'},
+      {label:'Marco 3', title:'Estar em casa às 22h'},
+      {label:'Marco 4', title:'Seguir um ritual completo de sono a partir das 21h50'},
+    ]
+  },
+  {
+    // Leitura: meta por marco = weeklyTarget capítulos/semana
+    // 50% ao atingir meta na sem1, 100% ao atingir meta nas duas semanas
+    id:'leitura', icon:'📖', accent:'#4fd4e8', accentBg:'rgba(79,212,232,0.12)',
+    name:'Leitura', fullName:'Leitura',
+    why:'A leitura amplia vocabulário e repertório para a redação do concurso.',
+    mode:'leitura',
+    marcos:[
+      {label:'Marco 1', title:'Ler 3 capítulos por semana — um livro por vez', weeklyTarget:3,
+       hint:'Meta: 3 capítulos/semana. 50% ao ler 3 na 1ª semana, 100% ao completar as duas semanas.'},
+      {label:'Marco 2', title:'Ler 4 capítulos por semana', weeklyTarget:4,
+       hint:'Meta: 4 capítulos/semana. 50% ao ler 4 na 1ª semana, 100% ao completar as duas semanas.'},
+      {label:'Marco 3', title:'Ler 5 capítulos por semana', weeklyTarget:5,
+       hint:'Meta: 5 capítulos/semana. 50% ao ler 5 na 1ª semana, 100% ao completar as duas semanas.'},
+      {label:'Marco 4', title:'Ler 6 capítulos por semana', weeklyTarget:6,
+       hint:'Meta: 6 capítulos/semana. 50% ao ler 6 na 1ª semana, 100% ao completar as duas semanas.'},
+    ]
+  },
+  {
+    id:'foco', icon:'🎯', accent:'#f75f7a', accentBg:'rgba(247,95,122,0.12)',
+    name:'Foco', fullName:'Foco total',
+    why:'Foco em uma única tarefa é o que gera resultados reais nos estudos.',
+    mode:'daily', skipSunday:false,
+    marcos:[
+      {label:'Marco 1', title:'Silenciar distrações — modo Não Perturbe ao estudar/trabalhar'},
+      {label:'Marco 2', title:'Anotar pensamentos intrusivos em um inbox centralizado'},
+      {label:'Marco 3', title:'Adiar a troca de tarefa por 10 min quando surgir o impulso'},
+      {label:'Marco 4', title:'Definir uma única meta diária e as tarefas para cumpri-la'},
+    ]
+  },
+];
+
+// ── State ────────────────────────────────────────────────────────────────────
+function load(){ try{ return JSON.parse(localStorage.getItem(SK)||'{}'); }catch(e){ return {}; } }
+function save(s){ try{ localStorage.setItem(SK, JSON.stringify(s)); }catch(e){} }
+let STATE = load();
+
+const VIEW    = {};  // which marco index is visible per habit
+const EDITING = {};  // edit mode per habit
+const EDITTMP = {};  // temp copy of days while editing
+
+function hs(hid){
+  if(!STATE[hid]) STATE[hid]={currentMarco:0, days:{}};
+  return STATE[hid];
+}
+function dk(mi,d){ return `m${mi}_d${d}`; }
+
+// ── Progress calculators ─────────────────────────────────────────────────────
+function countDone(days, mi, d1, d2){
+  let c=0;
+  for(let d=d1;d<=d2;d++) if(days[dk(mi,d)]) c++;
+  return c;
+}
+
+function calcProgress(hid, mi, habit, daysOverride){
+  const days = daysOverride || hs(hid).days;
+
+  if(habit.mode==='daily'){
+    const total = habit.skipSunday ? 12 : 14;
+    const done = countDone(days,mi,1,14);
+    return {pct:Math.round((done/total)*100), done, total};
+  }
+
+  if(habit.mode==='sono'){
+    // sábado livre = dia 6 (sem1) e dia 13 (sem2) são dow=5
+    // valid days: dow 0-4 (seg-sex exceto sáb) + dow 6 (dom) = seg,ter,qua,qui,sex,dom → 6 dias/sem
+    const validDow = new Set([0,1,2,3,4,6]);
+    let w1=0, w2=0;
+    for(let d=1;d<=7;d++){
+      const dow=(d-1)%7;
+      if(validDow.has(dow) && days[dk(mi,d)]) w1++;
+    }
+    for(let d=8;d<=14;d++){
+      const dow=(d-1)%7;
+      if(validDow.has(dow) && days[dk(mi,d)]) w2++;
+    }
+    const target=6;
+    const w1ok=w1>=target, w2ok=w2>=target;
+    const pct=(w1ok&&w2ok)?100:w1ok?50:Math.round((Math.min(w1,target)/target)*50);
+    return {pct,w1,w2,target,w1ok,w2ok};
+  }
+
+  if(habit.mode==='exercicio'){
+    const marco = habit.marcos[mi];
+    const wt = marco.weeklyTarget;
+    const w1 = countDone(days,mi,1,7);
+    const w2 = countDone(days,mi,8,14);
+    const totalTarget = wt*2;
+    const w1ok = w1>=wt, bothOk = (w1+w2)>=totalTarget;
+    const pct = bothOk?100 : w1ok?50 : Math.round((Math.min(w1,wt)/wt)*50);
+    return {pct,w1,w2,wt,w1ok,bothOk};
+  }
+
+  if(habit.mode==='leitura'){
+    const marco = habit.marcos[mi];
+    const wt = marco.weeklyTarget;
+    const w1 = countDone(days,mi,1,7);
+    const w2 = countDone(days,mi,8,14);
+    const w1ok=w1>=wt, w2ok=w2>=wt;
+    const pct=(w1ok&&w2ok)?100:w1ok?50:Math.round((Math.min(w1,wt)/wt)*50);
+    return {pct,w1,w2,wt,w1ok,w2ok};
+  }
+
+  return {pct:0};
+}
+
+function isMarcoComplete(hid, mi, habit, daysOverride){
+  return calcProgress(hid, mi, habit, daysOverride).pct >= 100;
+}
+
+function getStreak(hid, mi, habit, daysOverride){
+  if(habit.mode!=='daily') return null;
+  const days = daysOverride || hs(hid).days;
+  const validDays=[];
+  for(let d=1;d<=14;d++){
+    const dow=(d-1)%7;
+    if(habit.skipSunday && dow===6) continue;
+    validDays.push(d);
+  }
+  let streak=0;
+  for(let i=validDays.length-1;i>=0;i--){
+    if(days[dk(mi,validDays[i])]) streak++;
+    else break;
+  }
+  return streak;
+}
+
+// ── Day interaction ──────────────────────────────────────────────────────────
+function toggleDay(hid, mi, day, isEditMode){
+  let days;
+  if(isEditMode){
+    days = EDITTMP[hid];
+    days[dk(mi,day)] = !days[dk(mi,day)];
+  } else {
+    const h=hs(hid);
+    h.days[dk(mi,day)] = !h.days[dk(mi,day)];
+    days = h.days;
+    save(STATE);
+  }
+  const habit = HABITS.find(x=>x.id===hid);
+  renderCard(hid);
+  if(!isEditMode) updateOverview();
+
+  // check completion only on active marco (not edit mode)
+  if(!isEditMode){
+    const h=hs(hid);
+    if(isMarcoComplete(hid,mi,habit) && h.currentMarco===mi){
+      setTimeout(()=>{
+        const marcos=habit.marcos;
+        if(mi<marcos.length-1){
+          if(confirm('Parabéns! Marco concluído!\n\nAvançar para o '+marcos[mi+1].label+'?')){
+            h.currentMarco++;
+            VIEW[hid]=h.currentMarco;
+            save(STATE);
+            renderCard(hid);
+            updateOverview();
+          }
+        } else {
+          alert('Incrível! Você completou todos os marcos deste hábito!');
+        }
+      },300);
+    }
+  }
+}
+
+function startEdit(hid){
+  const h=hs(hid);
+  const viewMi = VIEW[hid]??h.currentMarco;
+  // deep copy only the days of this marco
+  const tmp={};
+  for(let d=1;d<=14;d++){
+    const k=dk(viewMi,d);
+    tmp[k]=!!h.days[k];
+  }
+  EDITTMP[hid]=tmp;
+  EDITING[hid]=true;
+  renderCard(hid);
+}
+
+function saveEdit(hid){
+  const h=hs(hid);
+  const viewMi=VIEW[hid]??h.currentMarco;
+  const tmp=EDITTMP[hid];
+  const habit=HABITS.find(x=>x.id===hid);
+
+  // build preview of what will be saved
+  const previewDays={...h.days};
+  for(let d=1;d<=14;d++){
+    const k=dk(viewMi,d);
+    previewDays[k]=!!tmp[k];
+  }
+
+  if(!confirm('Tem certeza que deseja salvar as alterações no '+habit.marcos[viewMi].label+'?')){
+    // discard
+    EDITING[hid]=false;
+    delete EDITTMP[hid];
+    renderCard(hid);
+    return;
+  }
+
+  // apply
+  for(let d=1;d<=14;d++){
+    const k=dk(viewMi,d);
+    h.days[k]=!!tmp[k];
+  }
+  EDITING[hid]=false;
+  delete EDITTMP[hid];
+  save(STATE);
+  renderCard(hid);
+  updateOverview();
+}
+
+function cancelEdit(hid){
+  EDITING[hid]=false;
+  delete EDITTMP[hid];
+  renderCard(hid);
+}
+
+function resetHabit(hid){
+  const habit=HABITS.find(x=>x.id===hid);
+  if(!confirm('Tem certeza que deseja zerar todo o progresso de "'+habit.fullName+'"?\n\nEssa ação apagará todos os dias marcados e voltará ao Marco 1. Ela não pode ser desfeita.')){
+    return;
+  }
+  STATE[hid]={currentMarco:0, days:{}};
+  VIEW[hid]=0;
+  EDITING[hid]=false;
+  delete EDITTMP[hid];
+  save(STATE);
+  renderCard(hid);
+  updateOverview();
+}
+
+function navigateMarco(hid, dir){
+  const h=hs(hid);
+  const habit=HABITS.find(x=>x.id===hid);
+  if(EDITING[hid]) return;
+  const cur=VIEW[hid]??h.currentMarco;
+  const next=cur+dir;
+  if(next<0||next>=habit.marcos.length) return;
+  if(next>h.currentMarco) return;
+  VIEW[hid]=next;
+  renderCard(hid);
+}
+
+// ── Overview ─────────────────────────────────────────────────────────────────
+function buildOverview(){
+  const ov=document.getElementById('overview');
+  HABITS.forEach(habit=>{
+    const a=document.createElement('a');
+    a.className='ov-card'; a.href='#card-'+habit.id;
+    a.setAttribute('data-ov',habit.id);
+    a.innerHTML=`
+      <div class="ov-icon">${habit.icon}</div>
+      <div class="ov-name">${habit.name}</div>
+      <div class="ov-ring">
+        <svg width="36" height="36" viewBox="0 0 36 36">
+          <circle cx="18" cy="18" r="14" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="3"/>
+          <circle cx="18" cy="18" r="14" fill="none" stroke="${habit.accent}" stroke-width="3"
+            stroke-dasharray="87.96" stroke-dashoffset="87.96" stroke-linecap="round" class="ov-arc"/>
+        </svg>
+        <div class="ov-ring-pct ov-pct">0%</div>
+      </div>`;
+    ov.appendChild(a);
+  });
+}
+
+function updateOverview(){
+  HABITS.forEach(habit=>{
+    const card=document.querySelector(`[data-ov="${habit.id}"]`);
+    if(!card) return;
+    const mi=hs(habit.id).currentMarco;
+    const prog=calcProgress(habit.id,mi,habit);
+    const circ=2*Math.PI*14;
+    card.querySelector('.ov-arc').style.strokeDashoffset=(circ*(1-prog.pct/100)).toFixed(2);
+    card.querySelector('.ov-pct').textContent=prog.pct+'%';
+  });
+}
+
+// ── Card build ───────────────────────────────────────────────────────────────
+function buildCard(habit){
+  const card=document.createElement('div');
+  card.className='habit-card';
+  card.id='card-'+habit.id;
+  card.style.setProperty('--accent',habit.accent);
+  card.style.setProperty('--accent-bg',habit.accentBg);
+  card.setAttribute('data-card',habit.id);
+  card.innerHTML=`
+    <div class="card-top">
+      <div class="card-head">
+        <div class="card-head-left">
+          <div class="card-icon-wrap">${habit.icon}</div>
+          <div>
+            <div class="card-title">${habit.fullName}</div>
+            <div class="card-why">${habit.why}</div>
+          </div>
+        </div>
+        <div class="card-pct-badge pct-badge">0%</div>
+      </div>
+      <div class="pbar-wrap">
+        <div class="pbar-track"><div class="pbar-fill" style="width:0%"></div></div>
+        <div class="pbar-meta"><span class="pbar-left"></span><span class="pbar-right"></span></div>
+      </div>
+    </div>
+    <div class="card-body">
+      <div class="marco-nav">
+        <button class="marco-nav-btn nav-prev">&#8592;</button>
+        <div class="marco-nav-dots nd"></div>
+        <button class="marco-nav-btn nav-next">&#8594;</button>
+      </div>
+      <div class="history-banner hb">
+        <div class="history-banner-left">
+          <div class="history-banner-dot"></div>
+          <span>Visualizando histórico</span>
+        </div>
+        <div>
+          <button class="edit-btn eb">Editar</button>
+          <button class="save-btn sb">Salvar</button>
+        </div>
+      </div>
+      <div class="marco-badge mb"></div>
+      <div class="marco-title mt"></div>
+      <div class="goal-hint gh" style="display:none"></div>
+      <div class="weeks-wrap">
+        <div class="week-blk">
+          <div class="week-label">Semana 1 <span class="week-ok-badge wob1">Concluída</span></div>
+          <div class="days-grid dg-w1"></div>
+        </div>
+        <div class="week-blk">
+          <div class="week-label">Semana 2 <span class="week-ok-badge wob2">Concluída</span></div>
+          <div class="days-grid dg-w2"></div>
+        </div>
+      </div>
+      <div class="stats-row sr"></div>
+      <div class="next-marco-hint nmh"></div>
+      <button class="reset-btn rb">
+        <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M1 8a7 7 0 1 0 1.41-4.24"/><polyline points="1 2 1 6 5 6"/>
+        </svg>
+        Zerar progresso
+      </button>
+    </div>`;
+
+  card.querySelector('.nav-prev').addEventListener('click',()=>navigateMarco(habit.id,-1));
+  card.querySelector('.nav-next').addEventListener('click',()=>navigateMarco(habit.id,+1));
+  card.querySelector('.eb').addEventListener('click',()=>{
+    if(EDITING[habit.id]) cancelEdit(habit.id);
+    else startEdit(habit.id);
+  });
+  card.querySelector('.sb').addEventListener('click',()=>saveEdit(habit.id));
+  card.querySelector('.rb').addEventListener('click',()=>resetHabit(habit.id));
+  return card;
+}
+
+// ── Day grid render ───────────────────────────────────────────────────────────
+function isOffDay(habit, mi, d){
+  const dow=(d-1)%7; // 0=Mon...6=Sun
+  if(habit.skipSunday && dow===6) return true;
+  if(habit.mode==='sono' && dow===5) return true; // sat off
+  return false;
+}
+
+function renderDaysGrid(grid, habit, mi, weekNum, readonly, days){
+  grid.innerHTML='';
+  const startDay=weekNum===1?1:8;
+  for(let i=0;i<7;i++){
+    const d=startDay+i;
+    const off=isOffDay(habit,mi,d);
+    const isDone=!!days[dk(mi,d)];
+    let btnClass='day-btn';
+    if(off) btnClass+=' off';
+    else if(isDone) btnClass+=' done';
+    if(readonly&&!off) btnClass+=' readonly';
+    const cell=document.createElement('div');
+    cell.className='day-cell';
+    cell.innerHTML=`
+      <span class="day-label">${DAY_NAMES[i]}</span>
+      <button class="${btnClass}" ${off||readonly?'disabled':''}></button>`;
+    if(!off&&!readonly){
+      const isEditMode=EDITING[habit.id];
+      cell.querySelector('button').addEventListener('click',()=>toggleDay(habit.id,mi,d,isEditMode));
+    }
+    grid.appendChild(cell);
+  }
+}
+
+// ── Card render ───────────────────────────────────────────────────────────────
+function renderCard(hid){
+  const habit=HABITS.find(x=>x.id===hid);
+  const h=hs(hid);
+  const activeMi=h.currentMarco;
+  const viewMi=VIEW[hid]??activeMi;
+  const isHistory=viewMi<activeMi;
+  const isEditMode=!!EDITING[hid];
+  const marco=habit.marcos[viewMi];
+  const days = isEditMode ? EDITTMP[hid] : h.days;
+  const prog=calcProgress(hid,viewMi,habit,days);
+  const card=document.querySelector(`[data-card="${hid}"]`);
+  if(!card) return;
+
+  // top bar: always active marco progress
+  const activeProg=calcProgress(hid,activeMi,habit,h.days);
+  card.querySelector('.pct-badge').textContent=activeProg.pct+'%';
+  card.querySelector('.pbar-fill').style.width=activeProg.pct+'%';
+  card.querySelector('.pbar-left').textContent=
+    habit.mode==='daily'
+      ? activeProg.done+'/'+activeProg.total+' dias'
+      : activeProg.pct+'% concluído';
+  card.querySelector('.pbar-right').textContent='Marco '+(activeMi+1)+' de '+habit.marcos.length;
+
+  // nav dots
+  const nd=card.querySelector('.nd');
+  nd.innerHTML='';
+  for(let i=0;i<habit.marcos.length;i++){
+    const dot=document.createElement('div');
+    dot.className='marco-dot';
+    if(i===viewMi) dot.classList.add('active');
+    else if(i<activeMi) dot.classList.add('done');
+    else if(i>activeMi) dot.style.opacity='.15';
+    nd.appendChild(dot);
+  }
+
+  // nav buttons — disable during edit
+  card.querySelector('.nav-prev').disabled = viewMi<=0 || isEditMode;
+  card.querySelector('.nav-next').disabled = viewMi>=activeMi || isEditMode;
+
+  // history banner
+  const hb=card.querySelector('.hb');
+  hb.classList.toggle('show',isHistory);
+  const eb=card.querySelector('.eb');
+  const sb=card.querySelector('.sb');
+  if(isHistory){
+    eb.textContent = isEditMode ? 'Cancelar' : 'Editar';
+    eb.classList.toggle('editing', isEditMode);
+    sb.classList.toggle('show', isEditMode);
+  }
+
+  // marco content
+  card.querySelector('.mb').textContent=marco.label;
+  card.querySelector('.mt').textContent=marco.title;
+
+  // hint: per-marco for exercicio/leitura, global for sono, none for others
+  const gh=card.querySelector('.gh');
+  const hintText = marco.hint || habit.hint || null;
+  if(hintText){ gh.textContent=hintText; gh.style.display='block'; gh.style.marginBottom='18px'; }
+  else { gh.style.display='none'; }
+
+  // grids
+  const readonly = isHistory && !isEditMode;
+  renderDaysGrid(card.querySelector('.dg-w1'),habit,viewMi,1,readonly,days);
+  renderDaysGrid(card.querySelector('.dg-w2'),habit,viewMi,2,readonly,days);
+
+  // week ok badges
+  if(['sono','exercicio','leitura'].includes(habit.mode)){
+    card.querySelector('.wob1').classList.toggle('show',!!prog.w1ok);
+    card.querySelector('.wob2').classList.toggle('show',!!prog.w2ok);
+  } else {
+    card.querySelector('.wob1').classList.remove('show');
+    card.querySelector('.wob2').classList.remove('show');
+  }
+
+  // stats
+  const sr=card.querySelector('.sr');
+  sr.innerHTML='';
+  if(habit.mode==='daily'){
+    const streak=isHistory?null:getStreak(hid,viewMi,habit,days);
+    if(!isHistory) sr.innerHTML+=`<div class="stat-chip">Sequência: <strong>${streak} dia${streak!==1?'s':''} seguido${streak!==1?'s':''}</strong></div>`;
+    sr.innerHTML+=`<div class="stat-chip">Dias marcados: <strong>${countDone(days,viewMi,1,14)}</strong></div>`;
+  } else if(habit.mode==='sono'){
+    const t=prog.target||6;
+    sr.innerHTML=`
+      <div class="stat-chip">Semana 1: <strong style="color:${prog.w1ok?habit.accent:'inherit'}">${prog.w1ok?'✓ Meta atingida':(prog.w1||0)+'/'+t}</strong></div>
+      <div class="stat-chip">Semana 2: <strong style="color:${prog.w2ok?habit.accent:'inherit'}">${prog.w2ok?'✓ Meta atingida':(prog.w2||0)+'/'+t}</strong></div>`;
+  } else if(habit.mode==='exercicio'){
+    const wt=marco.weeklyTarget;
+    sr.innerHTML=`
+      <div class="stat-chip">Semana 1: <strong style="color:${prog.w1ok?habit.accent:'inherit'}">${prog.w1ok?'✓ Meta atingida':(prog.w1||0)+'/'+wt}</strong></div>
+      <div class="stat-chip">Total: <strong style="color:${prog.bothOk?habit.accent:'inherit'}">${(prog.w1||0)+(prog.w2||0)+'/'+(wt*2)}</strong></div>`;
+  } else if(habit.mode==='leitura'){
+    const wt=marco.weeklyTarget;
+    sr.innerHTML=`
+      <div class="stat-chip">Semana 1: <strong style="color:${prog.w1ok?habit.accent:'inherit'}">${prog.w1ok?'✓ Meta atingida':(prog.w1||0)+'/'+wt}</strong></div>
+      <div class="stat-chip">Semana 2: <strong style="color:${prog.w2ok?habit.accent:'inherit'}">${prog.w2ok?'✓ Meta atingida':(prog.w2||0)+'/'+wt}</strong></div>`;
+  }
+
+  // next marco hint
+  const nmh=card.querySelector('.nmh');
+  if(!isHistory && activeMi<habit.marcos.length-1){
+    nmh.style.display='block';
+    const next=habit.marcos[activeMi+1];
+    nmh.innerHTML=`Próximo — <span>${next.label}: ${next.title}</span>`;
+  } else {
+    nmh.style.display='none';
+  }
+}
+
+// ── Init ─────────────────────────────────────────────────────────────────────
+buildOverview();
+HABITS.forEach(habit=>{
+  VIEW[habit.id]=hs(habit.id).currentMarco;
+  document.getElementById('cards-container').appendChild(buildCard(habit));
+  renderCard(habit.id);
+});
+updateOverview();
+</script>
+</body>
+</html>
