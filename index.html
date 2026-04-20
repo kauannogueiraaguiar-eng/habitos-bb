@@ -976,7 +976,6 @@ function renderJornada(){
   if(!j){
     btnEl.style.display='flex';
     infoEl.classList.remove('show');
-    // hide all marco date hints
     document.querySelectorAll('.mdh').forEach(el=>el.classList.remove('show'));
     return;
   }
@@ -984,41 +983,108 @@ function renderJornada(){
   btnEl.style.display='none';
   infoEl.classList.add('show');
 
-  const inicio = new Date(j.inicio);
   const hoje = new Date();
   hoje.setHours(0,0,0,0);
+
+  // ── Datas seguem o progresso real de cada hábito ──
+  // Para o painel geral, usamos a média dos marcos atuais de todos os hábitos
+  // e calculamos datas a partir dos marcos concluídos reais.
+
+  // Para cada hábito: marco atual e data de início de cada marco
+  // Marco 0 começa na data de início da jornada
+  // Marco N começa quando o Marco N-1 foi concluído (registrado em STATE)
+  // Se não tiver data de conclusão registrada, estimamos: início do marco + 14 dias
+
+  const inicio = new Date(j.inicio);
   inicio.setHours(0,0,0,0);
 
-  const conclusao = addDays(inicio, 56); // 4 marcos × 14 dias
-  const diasDecorridos = Math.floor((hoje - inicio)/(1000*60*60*24));
-  const marcoAtual = Math.min(Math.floor(diasDecorridos/14), 3);
-  const marcoFimDia = (marcoAtual+1)*14;
-  const marcoFim = addDays(inicio, marcoFimDia);
-  const diasRestantes = Math.max(0, Math.ceil((conclusao - hoje)/(1000*60*60*24)));
+  // Garante que STATE tem datas de conclusão de marcos
+  // Quando um marco é concluído, salvamos a data em STATE[hid].marcoDates[mi]
+  // Isso já é feito no toggleDay → ao avançar marco, salva a data
 
-  document.getElementById('j-title').textContent = '🚀 Jornada em andamento — Marco '+(marcoAtual+1)+' de 4';
-  document.getElementById('j-subtitle').textContent = diasDecorridos <= 0 ? 'Começou hoje!' : 'Dia '+Math.max(1,diasDecorridos)+' de 56';
+  // Calcula para o painel: usa o hábito com menos progresso como referência (mais conservador)
+  let maiorMarcoAtual = 0;
+  let estimativaFim = null;
+
+  HABITS.forEach(habit => {
+    const h = hs(habit.id);
+    const mi = h.currentMarco;
+    if(mi > maiorMarcoAtual) maiorMarcoAtual = mi;
+  });
+
+  // Para cada hábito, calcula data prevista de término considerando datas reais
+  let todasEstimativas = [];
+  HABITS.forEach(habit => {
+    const h = hs(habit.id);
+    const mi = h.currentMarco;
+    // Data de início do marco atual
+    let marcoStart = inicio;
+    if(h.marcoDates && h.marcoDates.length > 0){
+      // último marco concluído foi em h.marcoDates[mi-1]
+      if(mi > 0 && h.marcoDates[mi-1]){
+        marcoStart = new Date(h.marcoDates[mi-1]);
+        marcoStart.setHours(0,0,0,0);
+      }
+    }
+    // Estima fim de todos os marcos restantes como 14 dias cada
+    const marcosRestantes = habit.marcos.length - mi;
+    const fimEstimado = addDays(marcoStart, marcosRestantes * 14);
+    todasEstimativas.push(fimEstimado);
+  });
+
+  // Conclusão prevista = a mais tardia entre todos os hábitos
+  estimativaFim = todasEstimativas.reduce((a,b) => a > b ? a : b);
+
+  const diasRestantes = Math.max(0, Math.ceil((estimativaFim - hoje)/(1000*60*60*24)));
+  const diasDecorridos = Math.max(0, Math.floor((hoje - inicio)/(1000*60*60*24)));
+
+  // Marco atual global = média dos marcos (arredondado para baixo)
+  const somaMarcos = HABITS.reduce((s,h) => s + hs(h.id).currentMarco, 0);
+  const marcoGlobal = Math.floor(somaMarcos / HABITS.length);
+
+  document.getElementById('j-title').textContent = '🚀 Jornada em andamento — Marco '+(marcoGlobal+1)+' de 4';
+  document.getElementById('j-subtitle').textContent = diasDecorridos === 0 ? 'Começou hoje!' : 'Dia '+diasDecorridos+' em andamento';
   document.getElementById('j-inicio').textContent = fmtDate(inicio);
-  document.getElementById('j-marco-fim').textContent = fmtDate(marcoFim);
-  document.getElementById('j-conclusao').textContent = fmtDate(conclusao);
+
+  // Marco fim: próximo marco a vencer entre todos os hábitos
+  let proximoFim = null;
+  HABITS.forEach(habit => {
+    const h = hs(habit.id);
+    const mi = h.currentMarco;
+    let marcoStart = inicio;
+    if(mi > 0 && h.marcoDates && h.marcoDates[mi-1]){
+      marcoStart = new Date(h.marcoDates[mi-1]);
+      marcoStart.setHours(0,0,0,0);
+    }
+    const marcoEnd = addDays(marcoStart, 14);
+    if(!proximoFim || marcoEnd < proximoFim) proximoFim = marcoEnd;
+  });
+
+  document.getElementById('j-marco-fim').textContent = proximoFim ? fmtDate(proximoFim) : '—';
+  document.getElementById('j-conclusao').textContent = fmtDate(estimativaFim);
   document.getElementById('j-restantes').textContent = diasRestantes === 0 ? 'Hoje!' : diasRestantes+' dias';
 
-  // Update each card's marco date hint
+  // Atualiza hint de data em cada card
   HABITS.forEach(habit => {
     const card = document.querySelector('[data-card="'+habit.id+'"]');
     if(!card) return;
     const h = hs(habit.id);
     const mi = h.currentMarco;
-    const marcoStartDay = mi * 14;
-    const marcoEndDay = marcoStartDay + 14;
-    const marcoStart = addDays(inicio, marcoStartDay);
-    const marcoEnd = addDays(inicio, marcoEndDay);
+
+    let marcoStart = inicio;
+    if(mi > 0 && h.marcoDates && h.marcoDates[mi-1]){
+      marcoStart = new Date(h.marcoDates[mi-1]);
+      marcoStart.setHours(0,0,0,0);
+    }
+    const marcoEnd = addDays(marcoStart, 14);
     const daysLeft = Math.max(0, Math.ceil((marcoEnd - hoje)/(1000*60*60*24)));
+
     const mdh = card.querySelector('.mdh');
     if(mdh){
       mdh.classList.add('show');
       const daysLeftText = daysLeft === 0 ? 'último dia!' : daysLeft === 1 ? '1 dia restante' : daysLeft+' dias restantes';
-      mdh.innerHTML = '⏱ '+habit.marcos[mi].label+' · '+fmtDate(marcoStart)+' → '+fmtDate(marcoEnd)+' · <strong style="color:var(--accent)">'+daysLeftText+'</strong>';
+      const cor = daysLeft <= 3 ? '#f75f7a' : 'var(--accent)';
+      mdh.innerHTML = '⏱ '+habit.marcos[mi].label+' · '+fmtDate(marcoStart)+' → '+fmtDate(marcoEnd)+' · <strong style="color:'+cor+'">'+daysLeftText+'</strong>';
     }
   });
 }
