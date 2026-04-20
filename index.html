@@ -13,6 +13,7 @@
     --border:rgba(255,255,255,0.07); --border-hover:rgba(255,255,255,0.14);
     --text:#f0eee8; --muted:#7a7890; --muted2:#4a4860;
     --radius:16px; --radius-sm:10px;
+    --accent-global:#4f8ef7;
   }
   *{box-sizing:border-box;margin:0;padding:0}
   body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh;padding:0 0 80px}
@@ -106,6 +107,42 @@
   .reset-btn:hover{border-color:#f75f7a55;color:#f75f7a;background:rgba(247,95,122,0.07)}
   .reset-btn svg{flex-shrink:0}
 
+
+  /* ── Tornes modal ── */
+  .tornes-btn{background:none;border:none;cursor:pointer;padding:4px;color:var(--muted2);transition:color .15s;line-height:1;flex-shrink:0}
+  .tornes-btn:hover{color:var(--accent)}
+  .tornes-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:100;align-items:center;justify-content:center;padding:20px}
+  .tornes-overlay.show{display:flex}
+  .tornes-modal{background:var(--surface);border:0.5px solid var(--border-hover);border-radius:var(--radius);padding:24px;max-width:480px;width:100%;max-height:80vh;overflow-y:auto}
+  .tornes-modal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
+  .tornes-modal-title{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:var(--text)}
+  .tornes-modal-sub{font-size:11px;color:var(--muted);margin-top:2px}
+  .tornes-close{background:none;border:none;cursor:pointer;color:var(--muted);font-size:20px;line-height:1;padding:2px 6px;border-radius:6px;transition:all .15s}
+  .tornes-close:hover{background:var(--surface2);color:var(--text)}
+  .torne-item{padding:12px 14px;border-radius:10px;background:var(--surface2);margin-bottom:8px}
+  .torne-item:last-child{margin-bottom:0}
+  .torne-label{font-size:11px;font-weight:600;margin-bottom:4px}
+  .torne-text{font-size:13px;color:var(--muted);line-height:1.5}
+
+  /* ── Jornada ── */
+  .jornada-wrap{max-width:860px;margin:0 auto 32px;padding:0 24px}
+  .jornada-start{width:100%;padding:16px 24px;border-radius:var(--radius);border:1.5px dashed var(--border-hover);background:transparent;color:var(--muted);font-family:'Syne',sans-serif;font-size:14px;font-weight:600;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:10px}
+  .jornada-start:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-bg)}
+  .jornada-start svg{flex-shrink:0}
+  .jornada-info{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius);padding:18px 22px;display:none}
+  .jornada-info.show{display:block}
+  .jornada-top{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:14px}
+  .jornada-title{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:var(--text)}
+  .jornada-subtitle{font-size:11px;color:var(--muted);margin-top:2px}
+  .jornada-reset-btn{font-size:11px;padding:3px 10px;border-radius:99px;border:0.5px solid var(--border);background:transparent;color:var(--muted2);cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s}
+  .jornada-reset-btn:hover{border-color:#f75f7a55;color:#f75f7a}
+  .jornada-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px}
+  .jornada-stat{background:var(--surface2);border-radius:10px;padding:10px 14px}
+  .jornada-stat-label{font-size:10px;color:var(--muted);margin-bottom:3px;text-transform:uppercase;letter-spacing:.06em}
+  .jornada-stat-value{font-family:'Syne',sans-serif;font-size:16px;font-weight:700;color:var(--text)}
+  .jornada-stat-value.accent{color:var(--accent-global)}
+  .marco-date-hint{font-size:11px;color:var(--muted);margin-top:10px;padding:7px 12px;background:var(--surface2);border-radius:8px;display:none}
+  .marco-date-hint.show{display:block}
   ::-webkit-scrollbar{width:6px}
   ::-webkit-scrollbar-track{background:var(--bg)}
   ::-webkit-scrollbar-thumb{background:var(--surface2);border-radius:99px}
@@ -126,6 +163,40 @@
 </div>
 
 <div class="overview" id="overview"></div>
+
+<div class="jornada-wrap">
+  <button class="jornada-start" id="jornada-start-btn" onclick="iniciarJornada()">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+    Iniciar jornada — registrar data de início
+  </button>
+  <div class="jornada-info" id="jornada-info">
+    <div class="jornada-top">
+      <div>
+        <div class="jornada-title" id="j-title"></div>
+        <div class="jornada-subtitle" id="j-subtitle"></div>
+      </div>
+      <button class="jornada-reset-btn" onclick="resetarJornada()">Resetar data</button>
+    </div>
+    <div class="jornada-stats">
+      <div class="jornada-stat">
+        <div class="jornada-stat-label">Início</div>
+        <div class="jornada-stat-value" id="j-inicio"></div>
+      </div>
+      <div class="jornada-stat">
+        <div class="jornada-stat-label">Marco atual termina</div>
+        <div class="jornada-stat-value" id="j-marco-fim"></div>
+      </div>
+      <div class="jornada-stat">
+        <div class="jornada-stat-label">Conclusão prevista</div>
+        <div class="jornada-stat-value accent" id="j-conclusao"></div>
+      </div>
+      <div class="jornada-stat">
+        <div class="jornada-stat-label">Dias restantes</div>
+        <div class="jornada-stat-value accent" id="j-restantes"></div>
+      </div>
+    </div>
+  </div>
+</div>
 <div class="cards" id="cards-container"></div>
 
 <script>
@@ -133,6 +204,166 @@ const DAY_NAMES = ['Seg','Ter','Qua','Qui','Sex','Sáb','Dom'];
 const SK = 'bb_habitos_v4';
 
 // ── Habit definitions ────────────────────────────────────────────────────────
+
+const TORNES = {
+  estudo: [
+    {
+      claro: 'Estudar 1 hora no quarto, logo após passear com o Pigmeu.',
+      atraente: 'Ouvir duas músicas motivacionais antes de começar.',
+      facil: "Avisar a família e deixar o celular no modo 'Não Perturbe'.",
+      satisfatorio: "Registrar o hábito e repetir o mantra: 'Estou 1% mais perto da vaga de Escriturário do Banco do Brasil!'"
+    },
+    {
+      claro: 'Estudar 2 horas na universidade, após a musculação na academia da Unifor.',
+      atraente: 'Ouvir duas músicas motivacionais antes de começar.',
+      facil: 'Avisar que estará indisponível por 2 horas — só chamar em caso de urgência.',
+      satisfatorio: 'Registrar o hábito e assistir 20 minutos de conteúdo que aprecia.'
+    },
+    {
+      claro: 'Estudar 3 horas na universidade, após a musculação na academia da Unifor.',
+      atraente: 'Ouvir duas músicas motivacionais antes de começar.',
+      facil: 'Avisar que estará indisponível por 3 horas, exceto urgências.',
+      satisfatorio: 'Registrar o hábito e assistir 30 minutos de conteúdo que aprecia.'
+    },
+    {
+      claro: 'Estudar 4 horas na universidade, após a musculação na academia da Unifor.',
+      atraente: 'Ouvir duas músicas motivacionais antes de começar.',
+      facil: 'Avisar que estará indisponível por 4 horas, exceto urgências.',
+      satisfatorio: 'Registrar o hábito e iniciar o ritual do sono (Hábito 4).'
+    }
+  ],
+  exercicio: [
+    {
+      claro: 'Caminhar às 5h50 na praça do jardim.',
+      atraente: 'Ouvir áudios motivacionais que ajudam a afastar inseguranças e ansiedades.',
+      facil: 'Deixar roupa, tênis e garrafa de água prontos na véspera.',
+      satisfatorio: 'Registrar a ação no mural de hábitos.'
+    },
+    {
+      claro: 'Estar às 16h na academia da Unifor e treinar.',
+      atraente: 'Tomar um banho refrescante antes de ir.',
+      facil: 'Deixar a roupa de pré e pós-treino pronta em cima da cama pela manhã.',
+      satisfatorio: 'Registrar no app e tirar uma foto de evolução.'
+    },
+    {
+      claro: 'Estar às 16h na academia da Unifor e treinar.',
+      atraente: 'Tomar um banho refrescante antes de ir.',
+      facil: 'Deixar a roupa de pré e pós-treino pronta em cima da cama pela manhã.',
+      satisfatorio: 'Registrar no app e tirar uma foto de evolução para postar.'
+    },
+    {
+      claro: 'Estar às 16h na academia da Unifor e treinar seguindo a ficha de musculação.',
+      atraente: 'Tomar um banho refrescante antes de ir.',
+      facil: 'Deixar a roupa de pré e pós-treino pronta em cima da cama pela manhã.',
+      satisfatorio: 'Registrar no app e tirar uma foto de evolução para postar.'
+    }
+  ],
+  alimentacao: [
+    {
+      claro: "Dizer em voz alta: 'Vou beber apenas este copinho de 100ml.'",
+      atraente: 'Guardar a maior parte para o final, usando a saciedade como recompensa.',
+      facil: 'Deixar o copo de 100ml ao lado das xícaras, sempre visível.',
+      satisfatorio: 'Reconhecer e celebrar a sensação de saciedade ao final da refeição.'
+    },
+    {
+      claro: 'Irei preparar frutas e deixá-las prontas na geladeira antes de refeições como o almoço.',
+      atraente: 'Escolher frutas variadas e favoritas para tornar o momento prazeroso.',
+      facil: 'Deixar as frutas já cortadas e prontas na geladeira.',
+      satisfatorio: 'Após a refeição, expressar gratidão por estar cuidando da saúde.'
+    },
+    {
+      claro: 'Deixar na cozinha uma lista das refeições planejadas, com 50% de liberdade.',
+      atraente: 'Buscar receitas saborosas que se encaixem na dieta.',
+      facil: 'Verificar diariamente o estoque e o que precisa ser comprado.',
+      satisfatorio: 'Registrar foto das refeições e compartilhar como incentivo e vitória.'
+    },
+    {
+      claro: 'Consultarei a dieta completa que estará na cozinha ou celular e a seguirei sempre que for a hora de me alimentar.',
+      atraente: 'Buscar receitas saborosas e aproveitar com prazer as refeições livres.',
+      facil: 'Verificar diariamente o estoque e o que precisa ser comprado.',
+      satisfatorio: 'Registrar foto das refeições e compartilhar como celebração e inspiração.'
+    }
+  ],
+  sono: [
+    {
+      claro: 'Encerrar alimentação e hidratação às 20h, em qualquer lugar.',
+      atraente: 'Fazer uma última refeição prazerosa e saciante antes das 20h.',
+      facil: 'Começar a preparar o alimento a partir das 19h.',
+      satisfatorio: 'Registrar o cumprimento do marco no app de hábitos.'
+    },
+    {
+      claro: 'Parar de usar telas às 21h30, em qualquer ambiente.',
+      atraente: 'Fazer uma atividade agradável sem telas (ler, conversar, ouvir música).',
+      facil: 'Ativar o modo sono automaticamente às 21h30 no celular.',
+      satisfatorio: 'Registrar no app o cumprimento do marco antes de desligar os dispositivos.'
+    },
+    {
+      claro: 'Planejar saídas que garantam o retorno antes das 22h.',
+      atraente: 'Preparar um chá calmante ao chegar em casa.',
+      facil: 'Combinar com antecedência a possibilidade de sair mais cedo.',
+      satisfatorio: 'Beber o chá calmante em um ambiente com luz baixa e quente.'
+    },
+    {
+      claro: 'Às 21h50, seguir um checklist pré-criado que guia para um sono relaxante.',
+      atraente: 'Incluir no ritual um banho quente e relaxante.',
+      facil: 'Manter o checklist do ritual de sono sempre visível e acessível.',
+      satisfatorio: 'Acordar pela manhã com disposição e motivação renovadas.'
+    }
+  ],
+  leitura: [
+    {
+      claro: 'Ler 1 capítulo entre a chegada da faculdade e a ida para a academia.',
+      atraente: 'Tomar uma bebida bem gelada durante a leitura.',
+      facil: 'Ao arrumar a cama pela manhã, deixar o livro em cima dela.',
+      satisfatorio: 'Registrar a leitura do dia no app.'
+    },
+    {
+      claro: 'Ler 1 capítulo entre a chegada da faculdade e a ida para a academia.',
+      atraente: 'Tomar uma bebida bem gelada durante a leitura.',
+      facil: 'Ao arrumar a cama pela manhã, deixar o livro em cima dela.',
+      satisfatorio: 'Registrar a leitura do dia no app.'
+    },
+    {
+      claro: 'Ler 1 capítulo entre a chegada da faculdade e a ida para a academia.',
+      atraente: 'Tomar uma bebida bem gelada durante a leitura.',
+      facil: 'Ao arrumar a cama pela manhã, deixar o livro em cima dela.',
+      satisfatorio: 'Registrar a leitura do dia no app.'
+    },
+    {
+      claro: 'Ler 1 capítulo entre a chegada da faculdade e a ida para a academia.',
+      atraente: 'Tomar uma bebida bem gelada durante a leitura.',
+      facil: 'Ao arrumar a cama pela manhã, deixar o livro em cima dela.',
+      satisfatorio: 'Registrar a leitura do dia no app.'
+    }
+  ],
+  foco: [
+    {
+      claro: "Antes de qualquer atividade que exija foco, colocar o celular no modo 'Não Perturbe'.",
+      atraente: "Personalizar a tela do modo 'Não Perturbe' com uma imagem inspiradora.",
+      facil: 'Pré-configurar contatos permitidos e usar lista de transmissão para avisar o grupo em massa.',
+      satisfatorio: 'Lembrar que avisar sobre a indisponibilidade é um ato de respeito com quem espera.'
+    },
+    {
+      claro: 'Toda preocupação ou ideia que surgir deve ser anotada imediatamente em uma caixa de entrada (inbox) centralizada.',
+      atraente: 'Escrever uma breve descrição do pensamento — isso traz alívio imediato e limpa a mente.',
+      facil: 'No computador, atalho para a aba de anotações. No ambiente físico, caixa exclusiva com papéis à mão.',
+      satisfatorio: 'Saber que o pensamento está registrado e será revisado depois — sem risco de esquecer.'
+    },
+    {
+      claro: 'Quando a vontade de mudar de tarefa aparecer, comprometer-se a aguardar 10 minutos.',
+      atraente: 'Se o desejo persistir, sair do ambiente por 5 minutos com algo que não comprometa a tarefa.',
+      facil: 'Usar cronômetro (celular, computador ou relógio) para marcar os 10 minutos.',
+      satisfatorio: 'Ao concluir a tarefa, fazer imediatamente o que queria fazer antes.'
+    },
+    {
+      claro: 'Antes de dormir, definir UMA meta principal para o dia seguinte e as tarefas necessárias para realizá-la.',
+      atraente: 'Colocar uma música motivacional enquanto planeja, visualizando o objetivo alcançado.',
+      facil: 'Usar um app de tarefas (ex.: TickTick) para organizar as ações da meta.',
+      satisfatorio: 'Celebrar a conclusão de cada tarefa, não apenas da meta final.'
+    }
+  ]
+};
+
 const HABITS = [
   {
     id:'estudo', icon:'📚', accent:'#4f8ef7', accentBg:'rgba(79,142,247,0.12)',
@@ -186,7 +417,7 @@ const HABITS = [
     name:'Sono', fullName:'Dormir bem',
     why:'O sono de qualidade é essencial para a memória e a disposição.',
     mode:'sono', skipSat:true,
-    hint:'Sábado é livre. Meta: 6 dias/semana (seg–sex + dom). 50% ao atingir 6 na 1ª semana, 100% ao completar as duas.',
+    hint:'Sábado disponível. Meta: 6 dias/semana (qualquer dia). 50% ao atingir 6 na 1ª semana, 100% ao completar as duas.',
     marcos:[
       {label:'Marco 1', title:'Parar de comer e beber às 20h'},
       {label:'Marco 2', title:'Desligar as telas 30 min antes de dormir (21h30)'},
@@ -216,7 +447,7 @@ const HABITS = [
     id:'foco', icon:'🎯', accent:'#f75f7a', accentBg:'rgba(247,95,122,0.12)',
     name:'Foco', fullName:'Foco total',
     why:'Foco em uma única tarefa é o que gera resultados reais nos estudos.',
-    mode:'daily', skipSunday:false,
+    mode:'daily', skipSunday:true,
     marcos:[
       {label:'Marco 1', title:'Silenciar distrações — modo Não Perturbe ao estudar/trabalhar'},
       {label:'Marco 2', title:'Anotar pensamentos intrusivos em um inbox centralizado'},
@@ -258,18 +489,9 @@ function calcProgress(hid, mi, habit, daysOverride){
   }
 
   if(habit.mode==='sono'){
-    // sábado livre = dia 6 (sem1) e dia 13 (sem2) são dow=5
-    // valid days: dow 0-4 (seg-sex exceto sáb) + dow 6 (dom) = seg,ter,qua,qui,sex,dom → 6 dias/sem
-    const validDow = new Set([0,1,2,3,4,6]);
-    let w1=0, w2=0;
-    for(let d=1;d<=7;d++){
-      const dow=(d-1)%7;
-      if(validDow.has(dow) && days[dk(mi,d)]) w1++;
-    }
-    for(let d=8;d<=14;d++){
-      const dow=(d-1)%7;
-      if(validDow.has(dow) && days[dk(mi,d)]) w2++;
-    }
+    // sábado disponível — meta é 6 dias/semana (qualquer combinação dos 7)
+    const w1 = countDone(days,mi,1,7);
+    const w2 = countDone(days,mi,8,14);
     const target=6;
     const w1ok=w1>=target, w2ok=w2>=target;
     const pct=(w1ok&&w2ok)?100:w1ok?50:Math.round((Math.min(w1,target)/target)*50);
@@ -336,6 +558,7 @@ function toggleDay(hid, mi, day, isEditMode){
   const habit = HABITS.find(x=>x.id===hid);
   renderCard(hid);
   if(!isEditMode) updateOverview();
+renderJornada();
 
   // check completion only on active marco (not edit mode)
   if(!isEditMode){
@@ -350,6 +573,7 @@ function toggleDay(hid, mi, day, isEditMode){
             save(STATE);
             renderCard(hid);
             updateOverview();
+renderJornada();
           }
         } else {
           alert('Incrível! Você completou todos os marcos deste hábito!');
@@ -404,6 +628,7 @@ function saveEdit(hid){
   save(STATE);
   renderCard(hid);
   updateOverview();
+renderJornada();
 }
 
 function cancelEdit(hid){
@@ -424,6 +649,7 @@ function resetHabit(hid){
   save(STATE);
   renderCard(hid);
   updateOverview();
+renderJornada();
 }
 
 function navigateMarco(hid, dir){
@@ -513,7 +739,15 @@ function buildCard(habit){
           <button class="save-btn sb">Salvar</button>
         </div>
       </div>
-      <div class="marco-badge mb"></div>
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:0">
+        <div class="marco-badge mb" style="margin-bottom:0"></div>
+        <button class="tornes-btn tb" title="Como instalar este hábito">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 21h6M12 3a6 6 0 0 1 4 10.4V17H8v-3.6A6 6 0 0 1 12 3z"/>
+            <line x1="8" y1="21" x2="16" y2="21"/>
+          </svg>
+        </button>
+      </div>
       <div class="marco-title mt"></div>
       <div class="goal-hint gh" style="display:none"></div>
       <div class="weeks-wrap">
@@ -528,6 +762,7 @@ function buildCard(habit){
       </div>
       <div class="stats-row sr"></div>
       <div class="next-marco-hint nmh"></div>
+      <div class="marco-date-hint mdh"></div>
       <button class="reset-btn rb">
         <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M1 8a7 7 0 1 0 1.41-4.24"/><polyline points="1 2 1 6 5 6"/>
@@ -551,7 +786,6 @@ function buildCard(habit){
 function isOffDay(habit, mi, d){
   const dow=(d-1)%7; // 0=Mon...6=Sun
   if(habit.skipSunday && dow===6) return true;
-  if(habit.mode==='sono' && dow===5) return true; // sat off
   return false;
 }
 
@@ -632,6 +866,7 @@ function renderCard(hid){
 
   // marco content
   card.querySelector('.mb').textContent=marco.label;
+  card.querySelector('.tb').onclick=()=>openTornes(hid,viewMi);
   card.querySelector('.mt').textContent=marco.title;
 
   // hint: per-marco for exercicio/leitura, global for sono, none for others
@@ -689,6 +924,105 @@ function renderCard(hid){
   }
 }
 
+
+function openTornes(hid, mi){
+  const habit = HABITS.find(x=>x.id===hid);
+  const t = TORNES[hid][mi];
+  document.getElementById('tornes-title').textContent = habit.marcos[mi].label + ' — ' + habit.fullName;
+  document.getElementById('t-claro').textContent = t.claro;
+  document.getElementById('t-atraente').textContent = t.atraente;
+  document.getElementById('t-facil').textContent = t.facil;
+  document.getElementById('t-satisfatorio').textContent = t.satisfatorio;
+  document.getElementById('tornes-overlay').classList.add('show');
+}
+function closeTornes(e){
+  if(e.target===document.getElementById('tornes-overlay'))
+    document.getElementById('tornes-overlay').classList.remove('show');
+}
+
+const JK = 'bb_jornada_v1';
+function loadJornada(){ try{ return JSON.parse(localStorage.getItem(JK)||'null'); }catch(e){ return null; } }
+function saveJornada(d){ try{ localStorage.setItem(JK, JSON.stringify(d)); }catch(e){} }
+
+function fmtDate(d){
+  return d.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric'});
+}
+
+function addDays(date, n){
+  const d = new Date(date);
+  d.setDate(d.getDate()+n);
+  return d;
+}
+
+function iniciarJornada(){
+  if(loadJornada()){
+    if(!confirm('Já existe uma jornada em andamento. Deseja resetar e iniciar hoje?')) return;
+  }
+  saveJornada({inicio: new Date().toISOString()});
+  renderJornada();
+}
+
+function resetarJornada(){
+  if(!confirm('Tem certeza que deseja resetar a data de início da jornada?')) return;
+  localStorage.removeItem(JK);
+  renderJornada();
+}
+
+function renderJornada(){
+  const j = loadJornada();
+  const btnEl = document.getElementById('jornada-start-btn');
+  const infoEl = document.getElementById('jornada-info');
+
+  if(!j){
+    btnEl.style.display='flex';
+    infoEl.classList.remove('show');
+    // hide all marco date hints
+    document.querySelectorAll('.mdh').forEach(el=>el.classList.remove('show'));
+    return;
+  }
+
+  btnEl.style.display='none';
+  infoEl.classList.add('show');
+
+  const inicio = new Date(j.inicio);
+  const hoje = new Date();
+  hoje.setHours(0,0,0,0);
+  inicio.setHours(0,0,0,0);
+
+  const conclusao = addDays(inicio, 56); // 4 marcos × 14 dias
+  const diasDecorridos = Math.floor((hoje - inicio)/(1000*60*60*24));
+  const marcoAtual = Math.min(Math.floor(diasDecorridos/14), 3);
+  const marcoFimDia = (marcoAtual+1)*14;
+  const marcoFim = addDays(inicio, marcoFimDia);
+  const diasRestantes = Math.max(0, Math.ceil((conclusao - hoje)/(1000*60*60*24)));
+
+  document.getElementById('j-title').textContent = '🚀 Jornada em andamento — Marco '+(marcoAtual+1)+' de 4';
+  document.getElementById('j-subtitle').textContent = diasDecorridos <= 0 ? 'Começou hoje!' : 'Dia '+Math.max(1,diasDecorridos)+' de 56';
+  document.getElementById('j-inicio').textContent = fmtDate(inicio);
+  document.getElementById('j-marco-fim').textContent = fmtDate(marcoFim);
+  document.getElementById('j-conclusao').textContent = fmtDate(conclusao);
+  document.getElementById('j-restantes').textContent = diasRestantes === 0 ? 'Hoje!' : diasRestantes+' dias';
+
+  // Update each card's marco date hint
+  HABITS.forEach(habit => {
+    const card = document.querySelector('[data-card="'+habit.id+'"]');
+    if(!card) return;
+    const h = hs(habit.id);
+    const mi = h.currentMarco;
+    const marcoStartDay = mi * 14;
+    const marcoEndDay = marcoStartDay + 14;
+    const marcoStart = addDays(inicio, marcoStartDay);
+    const marcoEnd = addDays(inicio, marcoEndDay);
+    const daysLeft = Math.max(0, Math.ceil((marcoEnd - hoje)/(1000*60*60*24)));
+    const mdh = card.querySelector('.mdh');
+    if(mdh){
+      mdh.classList.add('show');
+      const daysLeftText = daysLeft === 0 ? 'último dia!' : daysLeft === 1 ? '1 dia restante' : daysLeft+' dias restantes';
+      mdh.innerHTML = '⏱ '+habit.marcos[mi].label+' · '+fmtDate(marcoStart)+' → '+fmtDate(marcoEnd)+' · <strong style="color:var(--accent)">'+daysLeftText+'</strong>';
+    }
+  });
+}
+
 // ── Init ─────────────────────────────────────────────────────────────────────
 buildOverview();
 HABITS.forEach(habit=>{
@@ -697,6 +1031,35 @@ HABITS.forEach(habit=>{
   renderCard(habit.id);
 });
 updateOverview();
+renderJornada();
 </script>
+
+<div class="tornes-overlay" id="tornes-overlay" onclick="closeTornes(event)">
+  <div class="tornes-modal" id="tornes-modal">
+    <div class="tornes-modal-header">
+      <div>
+        <div class="tornes-modal-title" id="tornes-title"></div>
+        <div class="tornes-modal-sub">Método de instalação do hábito</div>
+      </div>
+      <button class="tornes-close" onclick="document.getElementById('tornes-overlay').classList.remove('show')">&#x2715;</button>
+    </div>
+    <div class="torne-item">
+      <div class="torne-label" style="color:#4f8ef7">🎯 Torne claro</div>
+      <div class="torne-text" id="t-claro"></div>
+    </div>
+    <div class="torne-item">
+      <div class="torne-label" style="color:#f7a14f">✨ Torne atraente</div>
+      <div class="torne-text" id="t-atraente"></div>
+    </div>
+    <div class="torne-item">
+      <div class="torne-label" style="color:#3ec98e">⚡ Torne fácil</div>
+      <div class="torne-text" id="t-facil"></div>
+    </div>
+    <div class="torne-item">
+      <div class="torne-label" style="color:#c96fd4">🏆 Torne satisfatório</div>
+      <div class="torne-text" id="t-satisfatorio"></div>
+    </div>
+  </div>
+</div>
 </body>
 </html>
