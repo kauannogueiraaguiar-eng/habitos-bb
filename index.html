@@ -484,18 +484,24 @@ function calcProgress(hid, mi, habit, daysOverride){
 
   if(habit.mode==='daily'){
     const total = habit.skipSunday ? 12 : 14;
-    const done = countDone(days,mi,1,14);
-    return {pct:Math.round((done/total)*100), done, total};
+    let done = 0;
+    for(let d=1;d<=14;d++){
+      const dow=(d-1)%7;
+      if(habit.skipSunday && dow===6) continue; // não conta domingo
+      if(days[dk(mi,d)]) done++;
+    }
+    return {pct:Math.min(100,Math.round((done/total)*100)), done, total};
   }
 
   if(habit.mode==='sono'){
-    // sábado disponível — meta é 6 dias/semana (qualquer combinação dos 7)
     const w1 = countDone(days,mi,1,7);
     const w2 = countDone(days,mi,8,14);
-    const target=6;
-    const w1ok=w1>=target, w2ok=w2>=target;
-    const pct=(w1ok&&w2ok)?100:w1ok?50:Math.round((Math.min(w1,target)/target)*50);
-    return {pct,w1,w2,target,w1ok,w2ok};
+    const total = w1+w2;
+    const totalTarget = 12; // 6 per week × 2
+    const pct = Math.min(100, Math.round((total/totalTarget)*100));
+    const w1ok = w1>=6, w2ok = w2>=6;
+    const bothOk = total>=totalTarget;
+    return {pct,w1,w2,total,totalTarget,w1ok,w2ok,bothOk,target:6};
   }
 
   if(habit.mode==='exercicio'){
@@ -503,10 +509,13 @@ function calcProgress(hid, mi, habit, daysOverride){
     const wt = marco.weeklyTarget;
     const w1 = countDone(days,mi,1,7);
     const w2 = countDone(days,mi,8,14);
+    const total = w1+w2;
     const totalTarget = wt*2;
-    const w1ok = w1>=wt, bothOk = (w1+w2)>=totalTarget;
-    const pct = bothOk?100 : w1ok?50 : Math.round((Math.min(w1,wt)/wt)*50);
-    return {pct,w1,w2,wt,w1ok,bothOk};
+    const pct = Math.min(100, Math.round((total/totalTarget)*100));
+    const bothOk = total>=totalTarget;
+    // w1ok still shown for reference but doesn't gate progress
+    const w1ok = w1>=wt;
+    return {pct,w1,w2,wt,w1ok,bothOk,total,totalTarget};
   }
 
   if(habit.mode==='leitura'){
@@ -514,9 +523,12 @@ function calcProgress(hid, mi, habit, daysOverride){
     const wt = marco.weeklyTarget;
     const w1 = countDone(days,mi,1,7);
     const w2 = countDone(days,mi,8,14);
-    const w1ok=w1>=wt, w2ok=w2>=wt;
-    const pct=(w1ok&&w2ok)?100:w1ok?50:Math.round((Math.min(w1,wt)/wt)*50);
-    return {pct,w1,w2,wt,w1ok,w2ok};
+    const total = w1+w2;
+    const totalTarget = wt*2;
+    const pct = Math.min(100, Math.round((total/totalTarget)*100));
+    const bothOk = total>=totalTarget;
+    const w1ok = w1>=wt, w2ok = w2>=wt;
+    return {pct,w1,w2,wt,w1ok,w2ok,bothOk,total,totalTarget};
   }
 
   return {pct:0};
@@ -897,20 +909,24 @@ function renderCard(hid){
     if(!isHistory) sr.innerHTML+=`<div class="stat-chip">Sequência: <strong>${streak} dia${streak!==1?'s':''} seguido${streak!==1?'s':''}</strong></div>`;
     sr.innerHTML+=`<div class="stat-chip">Dias marcados: <strong>${countDone(days,viewMi,1,14)}</strong></div>`;
   } else if(habit.mode==='sono'){
-    const t=prog.target||6;
+    const total=(prog.w1||0)+(prog.w2||0);
     sr.innerHTML=`
-      <div class="stat-chip">Semana 1: <strong style="color:${prog.w1ok?habit.accent:'inherit'}">${prog.w1ok?'✓ Meta atingida':(prog.w1||0)+'/'+t}</strong></div>
-      <div class="stat-chip">Semana 2: <strong style="color:${prog.w2ok?habit.accent:'inherit'}">${prog.w2ok?'✓ Meta atingida':(prog.w2||0)+'/'+t}</strong></div>`;
+      <div class="stat-chip">Sem 1: <strong>${prog.w1||0}</strong> · Sem 2: <strong>${prog.w2||0}</strong></div>
+      <div class="stat-chip">Total: <strong style="color:${prog.bothOk?habit.accent:'inherit'}">${total}/12</strong></div>`;
   } else if(habit.mode==='exercicio'){
     const wt=marco.weeklyTarget;
+    const total=(prog.w1||0)+(prog.w2||0);
+    const totalTarget=wt*2;
     sr.innerHTML=`
-      <div class="stat-chip">Semana 1: <strong style="color:${prog.w1ok?habit.accent:'inherit'}">${prog.w1ok?'✓ Meta atingida':(prog.w1||0)+'/'+wt}</strong></div>
-      <div class="stat-chip">Total: <strong style="color:${prog.bothOk?habit.accent:'inherit'}">${(prog.w1||0)+(prog.w2||0)+'/'+(wt*2)}</strong></div>`;
+      <div class="stat-chip">Sem 1: <strong>${prog.w1||0}</strong> · Sem 2: <strong>${prog.w2||0}</strong></div>
+      <div class="stat-chip">Total: <strong style="color:${prog.bothOk?habit.accent:'inherit'}">${total}/${totalTarget}</strong></div>`;
   } else if(habit.mode==='leitura'){
     const wt=marco.weeklyTarget;
+    const total=(prog.w1||0)+(prog.w2||0);
+    const totalTarget=wt*2;
     sr.innerHTML=`
-      <div class="stat-chip">Semana 1: <strong style="color:${prog.w1ok?habit.accent:'inherit'}">${prog.w1ok?'✓ Meta atingida':(prog.w1||0)+'/'+wt}</strong></div>
-      <div class="stat-chip">Semana 2: <strong style="color:${prog.w2ok?habit.accent:'inherit'}">${prog.w2ok?'✓ Meta atingida':(prog.w2||0)+'/'+wt}</strong></div>`;
+      <div class="stat-chip">Sem 1: <strong>${prog.w1||0}</strong> · Sem 2: <strong>${prog.w2||0}</strong></div>
+      <div class="stat-chip">Total: <strong style="color:${prog.bothOk?habit.accent:'inherit'}">${total}/${totalTarget}</strong></div>`;
   }
 
   // next marco hint
@@ -1032,8 +1048,10 @@ function renderJornada(){
     todasEstimativas.push(fimEstimado);
   });
 
-  // Conclusão prevista = a mais tardia entre todos os hábitos
+  // Conclusão prevista = a mais tardia entre todos os hábitos (pior caso)
   estimativaFim = todasEstimativas.reduce((a,b) => a > b ? a : b);
+  const indexMaisLento = todasEstimativas.indexOf(estimativaFim);
+  const habitMaisLento = HABITS[indexMaisLento];
 
   const diasRestantes = Math.max(0, Math.ceil((estimativaFim - hoje)/(1000*60*60*24)));
   const diasDecorridos = Math.max(0, Math.floor((hoje - inicio)/(1000*60*60*24)));
@@ -1043,7 +1061,8 @@ function renderJornada(){
   const marcoGlobal = Math.floor(somaMarcos / HABITS.length);
 
   document.getElementById('j-title').textContent = '🚀 Jornada em andamento — Marco '+(marcoGlobal+1)+' de 4';
-  document.getElementById('j-subtitle').textContent = diasDecorridos === 0 ? 'Começou hoje!' : 'Dia '+diasDecorridos+' em andamento';
+  const subtitleExtra = habitMaisLento ? ' · hábito mais lento: '+habitMaisLento.name : '';
+  document.getElementById('j-subtitle').textContent = (diasDecorridos === 0 ? 'Começou hoje!' : 'Dia '+diasDecorridos+' em andamento') + subtitleExtra;
   document.getElementById('j-inicio').textContent = fmtDate(inicio);
 
   // Marco fim: próximo marco a vencer entre todos os hábitos
@@ -1089,6 +1108,93 @@ function renderJornada(){
   });
 }
 
+
+function advanceMarco(hid, mi, habit){
+  const h=hs(hid);
+  const marcos=habit.marcos;
+  if(mi<marcos.length-1){
+    if(confirm('Parabéns! Marco concluído!\n\nAvançar para o '+marcos[mi+1].label+'?')){
+      if(!h.marcoDates) h.marcoDates=[];
+      h.marcoDates[mi] = new Date().toISOString();
+      h.currentMarco++;
+      VIEW[hid]=h.currentMarco;
+      save(STATE);
+      renderCard(hid);
+      updateOverview();
+      renderJornada();
+    }
+  } else {
+    alert('Incrível! Você completou todos os marcos deste hábito! 🎉');
+  }
+}
+
+function checkRestartMarco(hid, mi, habit){
+  const h=hs(hid);
+  const prog = calcProgress(hid,mi,habit,h.days);
+  if(prog.pct>=100) return; // already complete, no restart needed
+
+  const choice = confirm(
+    '⚠️ '+habit.fullName+' — '+habit.marcos[mi].label+'\n\n'+
+    'Você usou todos os dias disponíveis mas atingiu apenas '+prog.pct+'% da meta.\n\n'+
+    'Deseja reiniciar este marco? (Os marcos anteriores são mantidos)\n\n'+
+    'Se esqueceu de marcar algum dia, clique em Cancelar e edite antes de reiniciar.'
+  );
+  if(choice){
+    // Clear only current marco days
+    for(let d=1;d<=14;d++) delete h.days[dk(mi,d)];
+    // Update jornada date for this marco restart
+    const j = loadJornada();
+    if(j){
+      if(!j.restarts) j.restarts={};
+      if(!j.restarts[hid]) j.restarts[hid]=[];
+      j.restarts[hid].push({marco:mi, date:new Date().toISOString()});
+      saveJornada(j);
+    }
+    save(STATE);
+    renderCard(hid);
+    updateOverview();
+    renderJornada();
+  }
+}
+
+
+
+
+
+function isMarcoExhausted(hid, mi, habit){
+  // Returns true if all available days are used but marco is not complete
+  const h = hs(hid);
+  if(h.currentMarco !== mi) return false; // only check active marco
+  if(isMarcoComplete(hid, mi, habit, h.days)) return false; // already complete
+  let available = 0, used = 0;
+  for(let d=1;d<=14;d++){
+    if(isOffDay(habit, mi, d)) continue;
+    available++;
+    if(dk(mi,d) in h.days) used++; // conta qualquer slot preenchido (true ou false)
+  }
+  return used >= available && available > 0;
+}
+
+async function checkAllExpiredMarcos(){
+  // Collect all habits with exhausted marcos
+  const expired = HABITS.filter(habit => {
+    const h = hs(habit.id);
+    return isMarcoExhausted(habit.id, h.currentMarco, habit);
+  });
+  if(expired.length === 0) return;
+
+  // Show them one by one in sequence
+  for(const habit of expired){
+    const h = hs(habit.id);
+    const mi = h.currentMarco;
+    await new Promise(resolve => {
+      setTimeout(() => {
+        checkRestartMarco(habit.id, mi, habit);
+        resolve();
+      }, 400);
+    });
+  }
+}
 // ── Init ─────────────────────────────────────────────────────────────────────
 buildOverview();
 HABITS.forEach(habit=>{
@@ -1098,6 +1204,8 @@ HABITS.forEach(habit=>{
 });
 updateOverview();
 renderJornada();
+// Auto-check all habits for exhausted marcos on page load
+setTimeout(checkAllExpiredMarcos, 600);
 </script>
 
 <div class="tornes-overlay" id="tornes-overlay" onclick="closeTornes(event)">
@@ -1127,5 +1235,6 @@ renderJornada();
     </div>
   </div>
 </div>
+
 </body>
 </html>
