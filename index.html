@@ -801,6 +801,47 @@ function isOffDay(habit, mi, d){
   return false;
 }
 
+
+function addDayInteraction(btn, hid, mi, d, isEditMode){
+  let timer = null;
+  let didLongPress = false;
+
+  btn.addEventListener('touchstart', function(e){
+    didLongPress = false;
+    timer = setTimeout(function(){
+      const currentlyDone = !!hs(hid).days[dk(mi,d)];
+      if(currentlyDone){
+        didLongPress = true;
+        if(navigator.vibrate) navigator.vibrate(80);
+        toggleDay(hid, mi, d, isEditMode);
+      }
+    }, 800);
+  }, {passive: true});
+
+  btn.addEventListener('touchend', function(e){
+    clearTimeout(timer);
+    if(!didLongPress){
+      const currentlyDone = !!hs(hid).days[dk(mi,d)];
+      if(!currentlyDone){
+        toggleDay(hid, mi, d, isEditMode);
+      }
+    }
+    didLongPress = false;
+  });
+
+  btn.addEventListener('touchcancel', function(){
+    clearTimeout(timer);
+    didLongPress = false;
+  });
+
+  // Desktop: click normal
+  btn.addEventListener('click', function(e){
+    if(!('ontouchstart' in window)){
+      toggleDay(hid, mi, d, isEditMode);
+    }
+  });
+}
+
 function renderDaysGrid(grid, habit, mi, weekNum, readonly, days){
   grid.innerHTML='';
   const startDay=weekNum===1?1:8;
@@ -820,47 +861,7 @@ function renderDaysGrid(grid, habit, mi, weekNum, readonly, days){
     if(!off&&!readonly){
       const isEditMode=EDITING[habit.id];
       const btn=cell.querySelector('button');
-      let pressTimer=null;
-      let pressing=false;
-
-      // Read live state at interaction time (not stale closure)
-      function isCurrentlyDone(){ return !!hs(habit.id).days[dk(mi,d)]; }
-
-      // Touch: tap to mark, long-press to unmark
-      btn.addEventListener('touchstart', e=>{
-        pressing=true;
-        pressTimer=setTimeout(()=>{
-          if(pressing && isCurrentlyDone()){
-            pressing=false;
-            // Vibrate on unmark
-            if(navigator.vibrate) navigator.vibrate(60);
-            toggleDay(habit.id,mi,d,isEditMode);
-          } else {
-            pressing=false;
-          }
-        }, 800);
-      },{passive:true});
-
-      btn.addEventListener('touchend', e=>{
-        if(pressing && pressTimer){
-          clearTimeout(pressTimer);
-          pressing=false;
-          // Short tap: only mark (not already done)
-          if(!isCurrentlyDone()) toggleDay(habit.id,mi,d,isEditMode);
-        }
-      });
-
-      btn.addEventListener('touchcancel', ()=>{
-        clearTimeout(pressTimer);
-        pressing=false;
-      });
-
-      // Mouse (desktop): normal click behavior preserved
-      btn.addEventListener('click', e=>{
-        if(!('ontouchstart' in window)){
-          toggleDay(habit.id,mi,d,isEditMode);
-        }
-      });
+      addDayInteraction(btn, habit.id, mi, d, isEditMode);
     }
     grid.appendChild(cell);
   }
