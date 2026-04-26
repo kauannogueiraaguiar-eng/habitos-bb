@@ -823,15 +823,20 @@ function renderDaysGrid(grid, habit, mi, weekNum, readonly, days){
       let pressTimer=null;
       let pressing=false;
 
+      // Read live state at interaction time (not stale closure)
+      function isCurrentlyDone(){ return !!hs(habit.id).days[dk(mi,d)]; }
+
       // Touch: tap to mark, long-press to unmark
       btn.addEventListener('touchstart', e=>{
         pressing=true;
         pressTimer=setTimeout(()=>{
-          if(pressing && isDone){
+          if(pressing && isCurrentlyDone()){
             pressing=false;
             // Vibrate on unmark
             if(navigator.vibrate) navigator.vibrate(60);
             toggleDay(habit.id,mi,d,isEditMode);
+          } else {
+            pressing=false;
           }
         }, 800);
       },{passive:true});
@@ -840,8 +845,8 @@ function renderDaysGrid(grid, habit, mi, weekNum, readonly, days){
         if(pressing && pressTimer){
           clearTimeout(pressTimer);
           pressing=false;
-          // Short tap: only mark (not unmark)
-          if(!isDone) toggleDay(habit.id,mi,d,isEditMode);
+          // Short tap: only mark (not already done)
+          if(!isCurrentlyDone()) toggleDay(habit.id,mi,d,isEditMode);
         }
       });
 
@@ -852,7 +857,6 @@ function renderDaysGrid(grid, habit, mi, weekNum, readonly, days){
 
       // Mouse (desktop): normal click behavior preserved
       btn.addEventListener('click', e=>{
-        // On desktop, allow both mark and unmark with single click
         if(!('ontouchstart' in window)){
           toggleDay(habit.id,mi,d,isEditMode);
         }
