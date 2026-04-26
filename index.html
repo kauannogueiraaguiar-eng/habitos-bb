@@ -805,43 +805,41 @@ function isOffDay(habit, mi, d){
 
 
 function addDayInteraction(btn, hid, mi, d, isEditMode){
-  let timer = null;
-  let didLongPress = false;
+  let lastTap = 0;
+  const DOUBLE_TAP_DELAY = 350; // ms entre os dois toques
 
-  btn.addEventListener('touchstart', function(e){
-    didLongPress = false;
-    timer = setTimeout(function(){
-      const currentlyDone = !!hs(hid).days[dk(mi,d)];
-      if(currentlyDone){
-        didLongPress = true;
-        if(navigator.vibrate) navigator.vibrate(80);
-        toggleDay(hid, mi, d, isEditMode);
-      }
-    }, 800);
-  }, {passive: true});
+  function handleInteraction(){
+    const currentlyDone = !!hs(hid).days[dk(mi,d)];
+    const now = Date.now();
 
-  btn.addEventListener('touchend', function(e){
-    e.preventDefault(); // prevent ghost hover state after touch
-    clearTimeout(timer);
-    if(!didLongPress){
-      const currentlyDone = !!hs(hid).days[dk(mi,d)];
-      if(!currentlyDone){
+    if(!currentlyDone){
+      // Não marcado: marca com 1 clique
+      toggleDay(hid, mi, d, isEditMode);
+      lastTap = 0;
+    } else {
+      // Já marcado: precisa de 2 cliques para desmarcar
+      if(now - lastTap < DOUBLE_TAP_DELAY){
+        // Segundo clique dentro do tempo — desmarca
         toggleDay(hid, mi, d, isEditMode);
+        lastTap = 0;
+      } else {
+        // Primeiro clique — aguarda o segundo
+        lastTap = now;
       }
     }
-    didLongPress = false;
-    btn.blur(); // remove focus/hover shadow after interaction
+  }
+
+  // Touch
+  btn.addEventListener('touchend', function(e){
+    e.preventDefault();
+    handleInteraction();
+    btn.blur();
   });
 
-  btn.addEventListener('touchcancel', function(){
-    clearTimeout(timer);
-    didLongPress = false;
-  });
-
-  // Desktop: click normal
+  // Desktop
   btn.addEventListener('click', function(e){
     if(!('ontouchstart' in window)){
-      toggleDay(hid, mi, d, isEditMode);
+      handleInteraction();
     }
   });
 }
