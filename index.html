@@ -87,10 +87,12 @@
   .days-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:7px}
   .day-cell{display:flex;flex-direction:column;align-items:center;gap:5px}
   .day-label{font-size:10px;font-weight:500;color:var(--muted2);text-transform:uppercase;letter-spacing:.04em}
-  .day-btn{width:100%;aspect-ratio:1;border-radius:8px;border:1.5px solid var(--surface2);background:var(--surface2);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;position:relative;overflow:hidden}
+  .day-btn{width:100%;aspect-ratio:1;border-radius:8px;border:1.5px solid var(--surface2);background:var(--surface2);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;position:relative;overflow:hidden;-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none;}
   .day-btn::before{content:'';position:absolute;inset:0;background:var(--accent);opacity:0;transition:opacity .15s}
   .day-btn:hover:not(.done):not(.off):not(.readonly)::before{opacity:.15}
+  .day-btn:active:not(.done):not(.off):not(.readonly){background:var(--surface2) !important;border-color:var(--surface2) !important;}
   .day-btn.done{border-color:var(--accent);background:var(--accent-bg)}
+  .day-btn.done:active{background:var(--accent-bg) !important;}
   .day-btn.done::after{content:'';display:block;width:36%;height:60%;border-right:2px solid var(--accent);border-bottom:2px solid var(--accent);transform:rotate(45deg) translate(-1px,-2px);position:relative;z-index:1}
   .day-btn.off{border-color:transparent;background:transparent;cursor:default;opacity:.25}
   .day-btn.readonly{cursor:default}
